@@ -19,17 +19,20 @@ public class TCPClient_timeout {
 
         String ipServidor = args[0];
         Integer puerto = Integer.parseInt(args[1]);
-        Integer cantidad = Integer.parseInt(args[2]);
+        Integer timeout = Integer.parseInt(args[2]);
         String archivo = args[3];
         Integer tramas = 1;
+        Integer cantidad = 1;
         
         Gson gson = new Gson();
 
         Socket kkSocket = null;
         PrintWriter out = null;
         BufferedReader in = null;
-        int TimeOutConexion = 7000; //milisegundos
-        int TimeOutRecepcion = 7000; //milisegundos
+//        int TimeOutConexion = 7000; //milisegundos
+//        int TimeOutRecepcion = 7000; //milisegundos
+        int TimeOutConexion = timeout; //milisegundos
+        int TimeOutRecepcion = timeout; //milisegundos
         long ini = 0;
         long fin = 0;
         String direccion = "";
@@ -74,17 +77,45 @@ public class TCPClient_timeout {
         BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
         String fromServer;
         String fromUser;
+        double  inirecepcion = 0;
+        double finrecepcion = 0;
 
         try {
             int i = 0;
             while ((fromServer = in.readLine()) != null) {
-                logger.info("Servidor: " + fromServer);
+//                logger.info("Servidor: " + fromServer);
                 Respuesta resp = gson.fromJson(fromServer, Respuesta.class);
+                
 
                 if (resp.getEstado().equals(0)) {
+                    logger.info(resp.getMensaje());
+                    finrecepcion = System.currentTimeMillis();
+//                    logger.info(finrecepcion+"/"+inirecepcion);
+                    double tiempoRecepcion = finrecepcion - inirecepcion;
+//                    logger.info("tiempoRescepcion: "+tiempoRecepcion);
+                    File file = new File("recibido");
+                    FileOutputStream fop = new FileOutputStream(file);
+                    
+
+                    fop.write(Base64.decodeBase64(resp.getFile()));
+                    fop.flush();
+                    
+                    double bytes = file.length();
+                    double kilobytes = (bytes / 1024);
+//                    logger.info("tiempoRescepcion: "+tiempoRecepcion);
+                    tiempoRecepcion = tiempoRecepcion / 1000;
+//                    logger.info("tiempoRescepcion: "+tiempoRecepcion);
+                    double velocidad = kilobytes / tiempoRecepcion ;
+//                    logger.info("size: "+kilobytes+"  tiempo: "+tiempoRecepcion);
+                    
+                    Respuesta respRecepcion = new Respuesta();
+                    respRecepcion.setEstado(0);
+                    respRecepcion.setMensaje("velocidad de recepcion: "+velocidad+" kBps");
+                    logger.info(respRecepcion.getMensaje());
                     break;
                 }
                 if (i < cantidad) {
+                    logger.info(resp.getMensaje());
                     File file = new File(archivo);
                     byte[] bytes = loadFile(file);
                     byte[] encoded = Base64.encodeBase64(bytes);
@@ -97,12 +128,14 @@ public class TCPClient_timeout {
                     fromUser = gson.toJson(o);
 
                 } else {
+                    
                     fromUser = "Bye";
                 }
 
                 if (fromUser != null) {
 
                     //escribimos al servidor
+                    inirecepcion = System.currentTimeMillis();
                     out.println(fromUser);
                 }
                 i++;

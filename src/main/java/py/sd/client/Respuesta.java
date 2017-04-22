@@ -10,8 +10,10 @@ package py.sd.client;
  * @author Miguel Fernandez <miguel.fernandez@konecta.com.py>
  */
 public class Respuesta {
+    
     Integer estado;
     String mensaje;
+    String file;
 
     public Integer getEstado() {
         return estado;
@@ -29,10 +31,20 @@ public class Respuesta {
         this.mensaje = mensaje;
     }
 
+    public String getFile() {
+        return file;
+    }
+
+    public void setFile(String file) {
+        this.file = file;
+    }
+
     @Override
     public String toString() {
-        return "Respuesta{" + "estado=" + estado + ", mensaje=" + mensaje + '}';
+        return "Respuesta{" + "estado=" + estado + ", mensaje=" + mensaje + ", file=" + file + '}';
     }
+
+
     
     
 }
